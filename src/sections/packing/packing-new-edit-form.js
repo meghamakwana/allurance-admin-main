@@ -368,6 +368,7 @@ export default function ProductNewEditForm({ currentProduct }) {
                       <TableCell>Category Name</TableCell>
                       <TableCell>Serial Number</TableCell>
                       <TableCell>Metal Name</TableCell>
+                      <TableCell>Box Id</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -381,6 +382,7 @@ export default function ProductNewEditForm({ currentProduct }) {
                           <TableCell>{p.category_name}</TableCell>
                           <TableCell>{p.serial_number}</TableCell>
                           <TableCell>{p.metal_name}</TableCell>
+                          <TableCell>{p.box_id}</TableCell>
                         </TableRow>
                       ))}
                   </TableBody>
