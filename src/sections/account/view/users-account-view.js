@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
@@ -22,6 +22,15 @@ import AccountChangePassword from '../account-change-password';
 import AccountActivityLog from '../account-activity-log';
 import AccountOrderList from '../../order/view/order-list-view';
 import AccountOrderDetail from '../../order/view/order-details-view';
+import AccountAddress from '../account-address';
+import AccountCart from '../account-cart';
+import AccountWishlist from '../account-wishlist';
+import AccountReferrals from '../account-referrals';
+import AccountGiftCards from '../account-gift-cards';
+import AccountTickets from '../account-tickets';
+
+import { CUSTOMER_DETAILS_ENDPOINT } from 'src/utils/apiEndPoints';
+import { ManageAPIsData } from 'src/utils/commonFunction';
 
 // ----------------------------------------------------------------------
 
@@ -33,13 +42,43 @@ const TABS = [
   },
   {
     value: 'orders',
-    label: 'Orders',
+    label: 'Orders',  
     icon: <Iconify icon="solar:list-bold" width={24} />,
   },
+  // {
+  //   value: 'activitylog',
+  //   label: 'Activity Log',
+  //   icon: <Iconify icon="solar:list-bold" width={24} />,
+  // },
   {
-    value: 'activitylog',
-    label: 'Activity Log',
-    icon: <Iconify icon="solar:list-bold" width={24} />,
+    value: 'address',
+    label: 'Addresses',
+    icon: <Iconify icon="typcn:home-outline" width={24} />,
+  },
+  {
+    value: 'cart',
+    label: 'Cart',
+    icon: <Iconify icon="typcn:shopping-cart" width={24} />,
+  },
+  {
+    value: 'wishlist',
+    label: 'Wishlist',
+    icon: <Iconify icon="typcn:heart-outline" width={24} />,
+  },
+  {
+    value: 'referrals',
+    label: 'Referrals',
+    icon: <Iconify icon="heroicons:currency-rupee" width={24} />,
+  },
+  {
+    value: 'giftcards',
+    label: 'Gift Cards',
+    icon: <Iconify icon="typcn:gift" width={24} />,
+  },
+  {
+    value: 'tickets',
+    label: 'Tickets',
+    icon: <Iconify icon="typcn:ticket" width={24} />,
   },
 ];
 
@@ -48,7 +87,30 @@ const TABS = [
 export default function UsersAccountView({ id }) {
 
   const settings = useSettingsContext();
-  const [currentTab, setCurrentTab] = useState('general');
+  const [currentTab, setCurrentTab] = useState('');
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+        try {
+            const apiUrl = `${CUSTOMER_DETAILS_ENDPOINT}?id=${id}`;
+            const response = await ManageAPIsData(apiUrl, 'GET');
+
+            if (!response.ok) {
+                console.error("Error fetching data:", response.statusText);
+                return;
+            }
+            const responseData = await response.json();
+            setData(responseData.data)
+            setCurrentTab('general');
+            
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    };
+
+    fetchData();
+  }, [id]);
 
   const handleChangeTab = useCallback((event, newValue) => {
     setCurrentTab(newValue);
@@ -81,7 +143,7 @@ export default function UsersAccountView({ id }) {
         ))}
       </Tabs>
 
-      {currentTab === 'general' && <AccountGeneral id={id} />}
+      {currentTab === 'general' && <AccountGeneral id={id} data={data} />}
 
       {currentTab === 'billing' && (
         <AccountBilling
@@ -105,8 +167,19 @@ export default function UsersAccountView({ id }) {
         />
       )}
 
-      {currentTab === 'orders' && <AccountOrderList /> || currentTab === 'orders' && <AccountOrderDetail id={id} />}
+      {currentTab === 'orders' && <AccountOrderList data={data?.orderResults} /> || currentTab === 'orders' && <AccountOrderDetail id={id} />}
 
+      {currentTab === 'address' && <AccountAddress data={data?.addressResult} />}
+
+      {currentTab === 'cart' && <AccountCart data={data?.cartResults} />}
+
+      {currentTab === 'wishlist' && <AccountWishlist data={data?.wishlistResults} />}
+
+      {currentTab === 'referrals' && <AccountReferrals data={data?.referalResults} />}
+
+      {currentTab === 'giftcards' && <AccountGiftCards data={data?.giftCardResult} />}
+
+      {currentTab === 'tickets' && <AccountTickets data={data?.ticketResults} />}
     </Container>
   );
 }

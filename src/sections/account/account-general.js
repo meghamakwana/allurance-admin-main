@@ -27,18 +27,18 @@ import FormProvider, {
 
 // ----------------------------------------------------------------------
 
-export default function AccountGeneral({id}) {
+export default function AccountGeneral({id, data}) {
   const { enqueueSnackbar } = useSnackbar();
+  
 
-  const { user } = useMockedUser();
-
-
+  const user = data;
 
   const UpdateUserSchema = Yup.object().shape({
-    displayName: Yup.string().required('Name is required'),
+    first_name: Yup.string().required('First Name is required'),
+    last_name: Yup.string().required('Last Name is required'),
     email: Yup.string().required('Email is required').email('Email must be a valid email address'),
-    photoURL: Yup.mixed().nullable().required('Avatar is required'),
-    phoneNumber: Yup.string().required('Phone number is required'),
+    avatar: Yup.mixed().nullable().required('Avatar is required'),
+    phone: Yup.string().required('Phone number is required'),
     country: Yup.string().required('Country is required'),
     address: Yup.string().required('Address is required'),
     state: Yup.string().required('State is required'),
@@ -50,15 +50,16 @@ export default function AccountGeneral({id}) {
   });
 
   const defaultValues = {
-    displayName: user?.displayName || '',
+    first_name: user?.first_name || '',
+    last_name: user?.last_name || '',
     email: user?.email || '',
-    photoURL: user?.photoURL || null,
-    phoneNumber: user?.phoneNumber || '',
-    country: user?.country || '',
-    address: user?.address || '',
-    state: user?.state || '',
-    city: user?.city || '',
-    zipCode: user?.zipCode || '',
+    avatar: user?.avatar || null,
+    phone: user?.phone || '',
+    country: user?.userDetailResult?.country_name || '',
+    address: user?.userDetailResult?.address || '',
+    state: user?.userDetailResult?.state_name || '',
+    city: user?.district_name || '',
+    zipCode: user?.userDetailResult?.pincode_number || '',
     about: user?.about || '',
     isPublic: user?.isPublic || false,
   };
@@ -93,7 +94,7 @@ export default function AccountGeneral({id}) {
       });
 
       if (file) {
-        setValue('photoURL', newFile, { shouldValidate: true });
+        setValue('avatar', newFile, { shouldValidate: true });
       }
     },
     [setValue]
@@ -105,7 +106,7 @@ export default function AccountGeneral({id}) {
         <Grid xs={12} md={4}>
           <Card sx={{ pt: 10, pb: 5, px: 3, textAlign: 'center' }}>
             <RHFUploadAvatar
-              name="photoURL"
+              name="avatar"
               maxSize={3145728}
               onDrop={handleDrop}
               helperText={
@@ -148,10 +149,10 @@ export default function AccountGeneral({id}) {
                 sm: 'repeat(2, 1fr)',
               }}
             >
-              <RHFTextField name="displayName" label="First Name" />
-              <RHFTextField name="displayName" label="Last Name" />
+              <RHFTextField name="first_name" label="First Name" />
+              <RHFTextField name="last_name" label="Last Name" />
               <RHFTextField name="email" label="Email Address" />
-              <RHFTextField name="phoneNumber" label="Phone Number" />
+              <RHFTextField name="phone" label="Phone Number" />
               <RHFTextField name="address" label="Address" />
 
               <RHFAutocomplete
@@ -168,13 +169,13 @@ export default function AccountGeneral({id}) {
               <RHFTextField name="zipCode" label="Zip/Code" />
             </Box>
 
-            <Stack spacing={3} alignItems="flex-end" sx={{ mt: 3 }}>
+            {/* <Stack spacing={3} alignItems="flex-end" sx={{ mt: 3 }}>
               <RHFTextField name="about" multiline rows={4} label="About" />
 
               <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
                 Save Changes
               </LoadingButton>
-            </Stack>
+            </Stack> */}
           </Card>
         </Grid>
       </Grid>

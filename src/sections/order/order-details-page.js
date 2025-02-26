@@ -37,7 +37,6 @@ export default function InvoiceDetails({ id }) {
     const [deliveryStatus, setDeliveryStatus] = useState(1);
 
     useEffect(() => {
-        p
         const fetchData = async () => {
             try {
                 const apiUrl = `${INE_ADMIN_ORDERS_ENDPOINT}?id=${id}`;

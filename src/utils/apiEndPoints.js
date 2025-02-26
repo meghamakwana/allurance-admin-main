@@ -107,6 +107,7 @@ export const LOGIN_ENDPOINT = `${apiUrl}/users/login`;
 // CUSTOMER MODULE
 export const ine_customers_ModuleID = 14; // Module ID
 export const CUSTOMER_ENDPOINT = `${apiUrl}/customers`; // Endpoint to manage customers
+export const CUSTOMER_DETAILS_ENDPOINT = `${apiUrl}/customers/customer_details`; // Endpoint to manage customers details
 
 // MANAGE REQUEST MODULE
 export const ine_managerequest_ModuleID = 72; // Module ID

@@ -56,7 +56,7 @@ const STATUS_OPTIONS = [{ value: 'all', label: 'All' }, { value: 'all', label: '
 
 const TABLE_HEAD = [
   { id: 'orderNumber', label: 'Order', width: 116 },
-  { id: 'name', label: 'Customer' },
+  // { id: 'name', label: 'Customer' },
   { id: 'createdAt', label: 'Date', width: 140 },
   { id: 'channel', label: 'Channel', width: 140 },
   { id: 'totalQuantity', label: 'Items', width: 120, align: 'center' },
@@ -74,7 +74,7 @@ const defaultFilters = {
 
 // ----------------------------------------------------------------------
 
-export default function OrderListView() {
+export default function OrderListView({data}) {
   const { enqueueSnackbar } = useSnackbar();
 
   const table = useTable({ defaultOrderBy: 'orderNumber' });
@@ -84,7 +84,7 @@ export default function OrderListView() {
   const router = useRouter();
 
   const confirm = useBoolean();
-  const [tableData, setTableData] = useState([]);
+  const [tableData, setTableData] = useState(data || []);
 
   const [filters, setFilters] = useState(defaultFilters);
 
@@ -247,9 +247,7 @@ export default function OrderListView() {
                       'default'
                     }
                   >
-                    {['Online', 'Offline'].includes(tab.value)
-                      ? tableData.filter((user) => user.channel_mode === tab.value).length
-                      : tableData.length}
+                    {tab.count}
                   </Label>
                 }
               />
@@ -397,10 +395,7 @@ function applyFilter({ inputData, comparator, filters, dateError }) {
   if (name) {
     inputData = inputData.filter(
       (order) =>
-        order.order_id.toLowerCase().indexOf(name.toLowerCase()) !== -1 ||
-        order.first_name.toLowerCase().indexOf(name.toLowerCase()) !== -1 ||
-        order.last_name.toLowerCase().indexOf(name.toLowerCase()) !== -1 ||
-        order.email.toLowerCase().indexOf(name.toLowerCase()) !== -1
+        order.order_id?.toLowerCase().indexOf(name.toLowerCase()) !== -1
     );
   }
 

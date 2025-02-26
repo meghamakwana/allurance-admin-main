@@ -317,12 +317,12 @@ export default function ProductListView(permissions) {
       getActions: (params) => {
         const actions = [];
         // Conditionally render Edit action if user has update access
-        // actions.push(<GridActionsCellItem
-        //   showInMenu
-        //   icon={<Iconify icon="solar:eye-bold" />}
-        //   label="View"
-        //   onClick={() => handleViewRow(params.row.id)}
-        // />),
+        actions.push(<GridActionsCellItem
+          showInMenu
+          icon={<Iconify icon="solar:eye-bold" />}
+          label="View"
+          onClick={() => handleViewRow(params.row.id)}
+        />)
         {
           update_access === 1 &&
             actions.push(
