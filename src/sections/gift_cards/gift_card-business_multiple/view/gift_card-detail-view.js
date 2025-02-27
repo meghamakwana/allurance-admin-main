@@ -21,6 +21,7 @@ export default function InvoiceDetailsView({ id }) {
     const settings = useSettingsContext();
     const [fetchedData, setFetchedData] = useState(null);
     const [coupons, setCoupons] = useState(null);
+    const [giftCardHistory, setGiftCardHistory] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -45,6 +46,7 @@ export default function InvoiceDetailsView({ id }) {
                     setFetchedData(responseData.data);
                     if (responseData?.data) {
                         FetchGeneratedTemplates(responseData?.data?.id)
+                        FetchGiftCardHistory(responseData?.data?.id)
                     }
 
                 }
@@ -74,6 +76,24 @@ export default function InvoiceDetailsView({ id }) {
         }
     }
 
+    async function FetchGiftCardHistory(id) {
+        try {
+            const apiUrl = `${GIFT_CARD_ENDPOINT}?id=${id}`;
+            const response = await ManageAPIsData(apiUrl, 'GET');
+
+            if (!response.ok) {
+                console.error("Error fetching data:", response.statusText);
+                return;
+            }
+            const responseData = await response.json();
+            
+            setGiftCardHistory(responseData.data?.giftCardHistory)
+            
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    };
+
 
 
     return (
@@ -94,7 +114,7 @@ export default function InvoiceDetailsView({ id }) {
                 sx={{ mb: { xs: 3, md: 5 } }}
             />
 
-            <InvoiceDetails invoice={fetchedData} coupons={coupons} />
+            <InvoiceDetails invoice={fetchedData} coupons={coupons} giftCardHistory={giftCardHistory} />
         </Container>
     );
 }
