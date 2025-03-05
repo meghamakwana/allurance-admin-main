@@ -34,12 +34,13 @@ import FormProvider, {
 
 import { ManageAPIsData, ManageAPIsDataWithHeader, FetchUserDetail } from '../../../utils/commonFunction';
 import { GIFT_CARD_ENDPOINT } from '../../../utils/apiEndPoints';
-import { Button, CardContent, Typography } from '@mui/material';
+import { Button, CardContent, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
 import { GridDeleteIcon } from '@mui/x-data-grid';
 import { Box } from '@mui/system';
 import Upload from 'src/components/upload/upload';
 import Label from 'src/components/label';
 import UploadCsv from 'src/components/upload/upload-csv';
+import Scrollbar from 'src/components/scrollbar';
 
 // import { countries } from 'src/assets/data';
 
@@ -198,14 +199,15 @@ export default function ProductNewEditForm({ currentProduct }) {
           email: row[1],
           phone: row[2],
           amount: parseFloat(row[3]) || 0
-        }));
+      }));
 
       const totalCounts = {
-        emails: extractedData.filter(item => item.email).length,
-        phones: extractedData.filter(item => item.phone).length,
-        names: extractedData.filter(item => item.name).length,
-        amounts: extractedData.filter(item => item.amount).length
+        amount: 0
       };
+
+      extractedData.forEach((ed) => {
+        totalCounts.amount = totalCounts.amount + ed.amount
+      })
 
       setWholefile(extractedData);
       setCsvData(totalCounts);
@@ -337,10 +339,32 @@ export default function ProductNewEditForm({ currentProduct }) {
             <Card variant="solid" sx={{ bgcolor: 'text.disabled', color: 'white', justifyContent: "center", alignItems: "center" }}  >
               <CardContent>
                 <Typography level="title-md"> Summary</Typography>
-                <Typography> Total amount of E-mails : {CsvData.emails ? CsvData.emails : 0}</Typography>
-                <Typography> Total amount of Phone numbers : {CsvData.phones ? CsvData.phones : 0}</Typography>
-                {/* <Typography> Total Amount in rupees :  ( ₹ INR ) </Typography> */}
-                {/* <Typography>  Total Number of Gift Card: Total Count</Typography> */}
+                <Typography marginTop={2} > Total amount : ₹{CsvData.amount ? CsvData.amount : 0}</Typography>
+                <Typography marginBottom={2}>  Total Number of Gift Card: {Wholefile?.length ? Wholefile.length : 0}</Typography>
+                <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
+                    <Scrollbar>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Name</TableCell>
+                                    <TableCell>Email</TableCell>
+                                    <TableCell>Phone Number</TableCell>
+                                    <TableCell>Amount</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {Wholefile?.length && Wholefile?.map((d) => (
+                                    <TableRow>
+                                        <TableCell>{d.name}</TableCell>
+                                        <TableCell>{d.email}</TableCell>
+                                        <TableCell>{d.phone}</TableCell>
+                                        <TableCell>{d.amount}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </Scrollbar>
+                </TableContainer>
               </CardContent>
             </Card>
 
