@@ -45,6 +45,8 @@ import {
   RenderCellProduct,
   RenderCellCreatedAt,
   RenderCellProductCode,
+  RenderCellHsn,
+  RenderCellGst,
 } from '../category-table-row';
 import { usePermissions } from 'src/utils/PermissionFunction';
 
@@ -226,6 +228,22 @@ export default function ProductListView(permissions) {
       minWidth: 360,
       hideable: false,
       renderCell: (params) => <RenderCellProductCode params={params} />,
+    },
+    {
+      field: 'hsn',
+      headerName: 'HSN',
+      flex: 1,
+      minWidth: 360,
+      hideable: false,
+      renderCell: (params) => <RenderCellHsn params={params} />,
+    },
+    {
+      field: 'gstPercentage',
+      headerName: 'Gst Percentage',
+      flex: 1,
+      minWidth: 360,
+      hideable: false,
+      renderCell: (params) => <RenderCellGst params={params} />,
     },
     {
       field: 'created_at',

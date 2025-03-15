@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Tab, Tabs, Card, TextField, Button, Typography, useTheme, Table, TableHead, TableRow, TableCell, TableBody, IconButton, MenuItem, Select, FormControl, InputLabel, Grid, FormControlLabel, RadioGroup, Radio, Modal } from '@mui/material';
 import { useSnackbar } from 'src/components/snackbar';
 import { ManageAPIsData, convertSvgToPng, generateBarcodeUrl } from 'src/utils/commonFunction';
-import { INE_CREATE_ORDERS, INE_SEARCH_USER_BY_PHONE_NUMBER, OFFLINE_SALES_COUPONS_ENDPOINT, OFFLINE_SALES_CREATE_USER_ENDPOINT, OFFLINE_SALES_GIFTCARD_VERIFY_ENDPOINT, OFFLINE_SALES_OTP_VERIFY_ENDPOINT, OFFLINE_SALES_SEARCH_PRODUCT_BY_SERIAL_NUMBER_ENDPOINT, OFFLINE_SALES_USER_ADDRESSES_ENDPOINT } from 'src/utils/apiEndPoints';
+import { INE_CREATE_ORDERS, INE_SEARCH_USER_BY_PHONE_NUMBER, OFFLINE_SALES_COUPONS_ENDPOINT, OFFLINE_SALES_CREATE_USER_ENDPOINT, OFFLINE_SALES_GIFTCARD_VERIFY_ENDPOINT, OFFLINE_SALES_OTP_VERIFY_ENDPOINT, OFFLINE_SALES_SEARCH_PRODUCT_BY_SERIAL_NUMBER_ENDPOINT, OFFLINE_SALES_SEARCH_PRODUCT_BY_MODEL_NUMBER_ENDPOINT, OFFLINE_SALES_USER_ADDRESSES_ENDPOINT } from 'src/utils/apiEndPoints';
 import { Box, Stack } from '@mui/system';
 import Iconify from 'src/components/iconify';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -208,7 +208,7 @@ export default function InvoiceListView() {
             if (response.ok) { // Check if the response status is OK (200-299)
                 const foundUser = await response.json();
                 // console.log("USER DETAILS", foundUser.data)
-                setUserDetails(foundUser.data); // Store the user details
+                setUserDetails(foundUser.data[0]); // Store the user details
                 setUserNotFound(false);
                 setUserSearched(true);
                 enqueueSnackbar('User found');
@@ -313,15 +313,32 @@ export default function InvoiceListView() {
     const fetchProductDetails = async () => {
         setIsLoading(true);
         try {
-            if (searchQuery.trim() === '') {
+            if (searchQuery.trim() == '') {
                 return;
             }
-            const apiUrl = OFFLINE_SALES_SEARCH_PRODUCT_BY_SERIAL_NUMBER_ENDPOINT + `?id=${searchQuery}`;
+            const apiUrl = (deliveryOption == 1 ? OFFLINE_SALES_SEARCH_PRODUCT_BY_MODEL_NUMBER_ENDPOINT : OFFLINE_SALES_SEARCH_PRODUCT_BY_SERIAL_NUMBER_ENDPOINT)  + `/${searchQuery}`;
             const response = await ManageAPIsData(apiUrl, 'GET');
             if (response.ok) {
-                const productData = await response.json();
+                let productData = await response.json();
+                productData = productData.data;
+                if(!productData.length) {
+                    productData = [productData]
+                }
+                productData.map((pd) => {
+                    const price = pd.price || pd.pbaseprice;
+                    const gst = Number(pd.gstPercentage);;
+                    const gstPrice = price * (gst / 100);
+                    const basePrice = price - gstPrice;
+
+                    pd.gst = gst;
+                    pd.gstPrice = gstPrice;
+                    pd.basePrice = basePrice;
+                    pd.price = price;
+
+                    return pd
+                })
                 // Update the state with the fetched product data
-                setSearchedProducts(productData.data);
+                setSearchedProducts(productData);
                 setIsSearchPerformed(true); // Set search performed flag to true
                 setIsLoading(false);
             } else {
@@ -423,12 +440,11 @@ export default function InvoiceListView() {
     };
 
     const calculateTotal = () => {
-        return selectedProducts.reduce((total, product) => total + product.pbaseprice * product.quantity, 0);
+        return selectedProducts.reduce((total, product) => total + product.basePrice * product.quantity, 0);
     };
 
     const calculateTax = () => {
-        const taxRate = 18 / 100; // Converting percentage to decimal
-        return calculateTotal() * taxRate;
+        return selectedProducts.reduce((total, product) => total + product.gstPrice * product.quantity, 0);;
     };
 
     const calculateDiscount = () => {
@@ -540,8 +556,10 @@ export default function InvoiceListView() {
             console.error("sessionStorage is not available in this environment.");
         }
         let decoded;
+        let assisted_by = ''
         if (accessToken != null && accessToken !== undefined) {
             decoded = jwtDecode(accessToken);
+            assisted_by = decoded.data.prefix_id;
         } else {
             console.error("accessToken is undefined. Cannot decode.");
         }
@@ -551,7 +569,7 @@ export default function InvoiceListView() {
             address: addressDetails,
             channel_mode: 2,
             giftcard_id: "",
-            assisted_by: decoded,
+            assisted_by: assisted_by,
             cartproducts: selectedProducts,
             channel_name: deliveryOption == 1 ? 'Offline Sales Channel' : 'Online Sales Channel | Frontend',
             addressId: selectedAddress,
@@ -852,7 +870,7 @@ export default function InvoiceListView() {
                         <Typography variant="h6" sx={{ mb: 2 }}>
                             Add Address
                         </Typography>
-                        {!showCreateUserForm && userDetails && userAddresses.length > 0 && (
+                        { userDetails && userAddresses.length > 0 && (
                             <FormControl fullWidth sx={{ mt: 2, mb: 2 }}>
                                 <InputLabel>User Addresses</InputLabel>
                                 <Select
@@ -929,100 +947,199 @@ export default function InvoiceListView() {
             )}
 
             {tabValue === 'chooseProduct' && (
-                <Card variant="outlined" sx={{ p: 2, mb: 2, mt: 2 }}>
-                    <Typography variant="h6" sx={{ mb: 2 }}>
-                        Choose Product
-                    </Typography>
-                    <TextField
-                        label="Search by Serial Number"
-                        value={searchQuery}
-                        onChange={(event) => setSearchQuery(event.target.value)}
-                        fullWidth
-                        sx={{ mb: 2 }}
-                    />
-                    <Button variant="contained" onClick={handleSearch} sx={{ mb: 2 }}>
-                        Search
-                    </Button>
-                    {isSearchPerformed && (
-                        <Table>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>Model Number</TableCell>
-                                    <TableCell>Product Name</TableCell>
-                                    <TableCell>Serial Number</TableCell>
-                                    <TableCell>Price</TableCell>
-                                    <TableCell>Actions</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            {isLoading ? (
-                                <TableBody>
-                                    <TableRow>
-                                        <TableCell colSpan={5} style={{ textAlign: 'center', paddingTop: '20px' }}>
-                                            Loading...
-                                        </TableCell>
-                                    </TableRow>
-                                </TableBody>
-                            ) : (
-                                <TableBody>
-                                    {searchedProducts?.map((product) => (
-                                        <TableRow key={product.id}>
-                                            <TableCell>{product.irdesignerid}</TableCell>
-                                            <TableCell>{product.ptitle}</TableCell>
-                                            <TableCell>{product.serial_number}</TableCell>
-                                            <TableCell>{product.pbaseprice}/-</TableCell>
-                                            <TableCell>
-                                                <Button variant="contained" onClick={() => handleSelectProduct(product)}>
-                                                    Select
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            )}
-                        </Table>
-                    )}
-                    {selectedProducts.length > 0 && (
-                        <>
-                            <Typography variant="h6" sx={{ mb: 2, mt: 2 }}>
-                                Selected Products
+                <>
+                    {deliveryOption == 1 ? (
+                        <Card variant="outlined" sx={{ p: 2, mb: 2, mt: 2 }}>
+                            <Typography variant="h6" sx={{ mb: 2 }}>
+                                Choose Product
                             </Typography>
-                            <Table>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Model Number</TableCell>
-                                        <TableCell>Product Name</TableCell>
-                                        <TableCell>Serial Number</TableCell>
-                                        <TableCell>Price</TableCell>
-                                        <TableCell>Action</TableCell> {/* New column for delete action */}
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {selectedProducts.map((product) => (
-                                        <TableRow key={product.id}>
-                                            <TableCell>{product.irdesignerid}</TableCell>
-                                            <TableCell>{product.ptitle}</TableCell>
-                                            <TableCell>{product.serial_number}</TableCell>
-                                            <TableCell>{product.pbaseprice} /-</TableCell>
-                                            <TableCell>
-                                                <IconButton onClick={() => handleDeleteSelectedProduct(product.id)}>
-                                                    <Iconify icon="material-symbols-light:delete" />
-                                                </IconButton>
-                                            </TableCell>
+                            <TextField
+                                label="Search by Product Number"
+                                value={searchQuery}
+                                onChange={(event) => setSearchQuery(event.target.value)}
+                                fullWidth
+                                sx={{ mb: 2 }}
+                            />
+                            <Button variant="contained" onClick={handleSearch} sx={{ mb: 2 }}>
+                                Search
+                            </Button>
+                            {isSearchPerformed && (
+                                <Table>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>Model Number</TableCell>
+                                            <TableCell>Product Name</TableCell>
+                                            <TableCell>Serial Number</TableCell>
+                                            <TableCell>Price</TableCell>
+                                            <TableCell>Actions</TableCell>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </>
+                                    </TableHead>
+                                    {isLoading ? (
+                                        <TableBody>
+                                            <TableRow>
+                                                <TableCell colSpan={5} style={{ textAlign: 'center', paddingTop: '20px' }}>
+                                                    Loading...
+                                                </TableCell>
+                                            </TableRow>
+                                        </TableBody>
+                                    ) : (
+                                        <TableBody>
+                                            {searchedProducts?.map((product) => (
+                                                <TableRow key={product.id}>
+                                                    <TableCell>{product.model_number}</TableCell>
+                                                    <TableCell>{product.name}</TableCell>
+                                                    <TableCell style={{maxWidth: '200px', wordBreak:'break-word'}} >{product.serial_numbers}</TableCell>
+                                                    <TableCell>{product.pbaseprice}/-</TableCell>
+                                                    <TableCell>
+                                                        <Button variant="contained" onClick={() => handleSelectProduct(product)}>
+                                                            Select
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    )}
+                                </Table>
+                            )}
+                            {selectedProducts.length > 0 && (
+                                <>
+                                    <Typography variant="h6" sx={{ mb: 2, mt: 2 }}>
+                                        Selected Products
+                                    </Typography>
+                                    <Table>
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell>Model Number</TableCell>
+                                                <TableCell>Product Name</TableCell>
+                                                <TableCell>Serial Number</TableCell>
+                                                <TableCell>Price</TableCell>
+                                                <TableCell>Action</TableCell> {/* New column for delete action */}
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {selectedProducts.map((product) => (
+                                                <TableRow key={product.id}>
+                                                    <TableCell>{product.model_number}</TableCell>
+                                                    <TableCell>{product.name}</TableCell>
+                                                    <TableCell style={{maxWidth: '200px', wordBreak:'break-word'}}>{product.serial_numbers}</TableCell>
+                                                    <TableCell>{product.pbaseprice}/-</TableCell>
+                                                    <TableCell>
+                                                        <IconButton onClick={() => handleDeleteSelectedProduct(product.id)}>
+                                                            <Iconify icon="material-symbols-light:delete" />
+                                                        </IconButton>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </>
+                            )}
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+                                <Button variant="contained" onClick={handleCheckout}>
+                                    Checkout
+                                </Button>
+                                <Button onClick={() => setTabValue(deliveryOption == 1 ? 'addAddress' : 'SetDelivery')}>
+                                    Go Back
+                                </Button>
+                            </Box>
+                        </Card>
+                    ) : (
+                        <Card variant="outlined" sx={{ p: 2, mb: 2, mt: 2 }}>
+                            <Typography variant="h6" sx={{ mb: 2 }}>
+                                Choose Product
+                            </Typography>
+                            <TextField
+                                label="Search by Serial Number"
+                                value={searchQuery}
+                                onChange={(event) => setSearchQuery(event.target.value)}
+                                fullWidth
+                                sx={{ mb: 2 }}
+                            />
+                            <Button variant="contained" onClick={handleSearch} sx={{ mb: 2 }}>
+                                Search
+                            </Button>
+                            {isSearchPerformed && (
+                                <Table>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>Model Number</TableCell>
+                                            <TableCell>Product Name</TableCell>
+                                            <TableCell>Serial Number</TableCell>
+                                            <TableCell>Price</TableCell>
+                                            <TableCell>Actions</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    {isLoading ? (
+                                        <TableBody>
+                                            <TableRow>
+                                                <TableCell colSpan={5} style={{ textAlign: 'center', paddingTop: '20px' }}>
+                                                    Loading...
+                                                </TableCell>
+                                            </TableRow>
+                                        </TableBody>
+                                    ) : (
+                                        <TableBody>
+                                            {searchedProducts?.map((product) => (
+                                                <TableRow key={product.id}>
+                                                    <TableCell>{product.irdesignerid}</TableCell>
+                                                    <TableCell>{product.ptitle}</TableCell>
+                                                    <TableCell style={{maxWidth: '200px', wordBreak:'break-word'}} >{product.serial_number}</TableCell>
+                                                    <TableCell>{product.pbaseprice}/-</TableCell>
+                                                    <TableCell>
+                                                        <Button variant="contained" onClick={() => handleSelectProduct(product)}>
+                                                            Select
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    )}
+                                </Table>
+                            )}
+                            {selectedProducts.length > 0 && (
+                                <>
+                                    <Typography variant="h6" sx={{ mb: 2, mt: 2 }}>
+                                        Selected Products
+                                    </Typography>
+                                    <Table>
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell>Model Number</TableCell>
+                                                <TableCell>Product Name</TableCell>
+                                                <TableCell>Serial Number</TableCell>
+                                                <TableCell>Price</TableCell>
+                                                <TableCell>Action</TableCell> {/* New column for delete action */}
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {selectedProducts.map((product) => (
+                                                <TableRow key={product.id}>
+                                                    <TableCell>{product.irdesignerid}</TableCell>
+                                                    <TableCell>{product.ptitle}</TableCell>
+                                                    <TableCell style={{maxWidth: '200px', wordBreak:'break-word'}}>{product.serial_number}</TableCell>
+                                                    <TableCell>{product.pbaseprice}/-</TableCell>
+                                                    <TableCell>
+                                                        <IconButton onClick={() => handleDeleteSelectedProduct(product.id)}>
+                                                            <Iconify icon="material-symbols-light:delete" />
+                                                        </IconButton>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </>
+                            )}
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+                                <Button variant="contained" onClick={handleCheckout}>
+                                    Checkout
+                                </Button>
+                                <Button onClick={() => setTabValue(deliveryOption == 1 ? 'addAddress' : 'SetDelivery')}>
+                                    Go Back
+                                </Button>
+                            </Box>
+                        </Card>
                     )}
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-                        <Button variant="contained" onClick={handleCheckout}>
-                            Checkout
-                        </Button>
-                        <Button onClick={() => setTabValue(deliveryOption == 1 ? 'addAddress' : 'SetDelivery')}>
-                            Go Back
-                        </Button>
-                    </Box>
-                </Card>
+                </>
             )}
 
             {tabValue === 'checkout' && (
@@ -1064,6 +1181,8 @@ export default function InvoiceListView() {
                                     <TableCell>Serial Number</TableCell>
                                     <TableCell>Quantity</TableCell>
                                     <TableCell>Price</TableCell>
+                                    <TableCell>GST %</TableCell>
+                                    <TableCell>GST</TableCell>
                                     <TableCell>Total</TableCell>
                                     <TableCell>Actions</TableCell>
                                 </TableRow>
@@ -1071,12 +1190,14 @@ export default function InvoiceListView() {
                             <TableBody>
                                 {selectedProducts.map((product) => (
                                     <TableRow key={product.id}>
-                                        <TableCell>{product.irdesignerid}</TableCell>
+                                        <TableCell>{product.model_number || product.irdesignerid}</TableCell>
                                         <TableCell>{product.ptitle}</TableCell>
-                                        <TableCell>{product.serial_number}</TableCell>
+                                        <TableCell style={{maxWidth: '200px', wordBreak:'break-word'}}>{product.serial_numbers || product.serial_number}</TableCell>
                                         <TableCell>{product.quantity}</TableCell>
-                                        <TableCell>{product.pbaseprice} /-</TableCell>
-                                        <TableCell>{product.pbaseprice * product.quantity} /-</TableCell>
+                                        <TableCell>{product.basePrice} /-</TableCell>
+                                        <TableCell>{Number(product.gstPercentage)}%</TableCell>
+                                        <TableCell>{product.gstPrice} /-</TableCell>
+                                        <TableCell>{product.price * product.quantity} /-</TableCell>
                                         <TableCell>
                                             <IconButton onClick={() => handleDeleteSelectedProduct(product.id)}>
                                                 <Iconify icon="material-symbols-light:delete" />
@@ -1088,7 +1209,7 @@ export default function InvoiceListView() {
                         </Table>
                     )}
 
-                    <Stack spacing={2} marginBottom={2}>
+                    <Stack spacing={2} marginTop={2} marginBottom={2}>
                         <Grid container spacing={2} alignItems="center">
                             <Grid item xs={4}>
                                 <TextField
@@ -1130,7 +1251,7 @@ export default function InvoiceListView() {
                                 </>
                             )}
                         </Grid>
-                        {coupons.length > 0 && (<>
+                        {!coupons.length > 0 && (<>
                             <FormControl fullWidth variant="outlined">
                                 <Grid container spacing={2} alignItems="center">
                                     <Grid item xs={4}>
@@ -1169,7 +1290,7 @@ export default function InvoiceListView() {
                                         <TableCell>{calculateBaseAmount()}/-</TableCell>
                                     </TableRow>
                                     <TableRow>
-                                        <TableCell>Tax (18%):</TableCell>
+                                        <TableCell>GST:</TableCell>
                                         <TableCell>{calculateTax()}/-</TableCell>
                                     </TableRow>
                                     {selectedCoupon !== '' && ( // Check if a coupon is selected

@@ -64,6 +64,42 @@ RenderCellCreatedAt.propTypes = {
   }),
 };
 
+export function RenderCellHsn({ params }) {
+  return (
+    <Stack direction="row" alignItems="center" sx={{ py: 2, width: 1 }}>
+      <ListItemText
+        disableTypography
+        primary={params.row.hsn}
+        sx={{ display: 'flex', flexDirection: 'column' }}
+      />
+    </Stack>
+  );
+}
+
+RenderCellHsn.propTypes = {
+  params: PropTypes.shape({
+    row: PropTypes.object,
+  }),
+};
+
+export function RenderCellGst({ params }) {
+  return (
+    <Stack direction="row" alignItems="center" sx={{ py: 2, width: 1 }}>
+      <ListItemText
+        disableTypography
+        primary={`${Number(params.row.gstPercentage)}%`}
+        sx={{ display: 'flex', flexDirection: 'column' }}
+      />
+    </Stack>
+  );
+}
+
+RenderCellGst.propTypes = {
+  params: PropTypes.shape({
+    row: PropTypes.object,
+  }),
+};
+
 export function RenderCellStock({ params }) {
   return (
     <Stack sx={{ typography: 'caption', color: 'text.secondary' }}>

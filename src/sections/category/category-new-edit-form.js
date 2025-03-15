@@ -53,6 +53,8 @@ export default function ProductNewEditForm({ currentProduct }) {
     name: Yup.string().required('Title is required'),
     code: Yup.string().required('Code is required'),
     pair: Yup.string().required('Pair is required'),
+    hsn: Yup.string().required('HSN is required'),
+    gstPercentage: Yup.string().required('GST Percentage is required'),
   });
 
   const categoriesBasePath = '/assets/images/categories/';
@@ -65,6 +67,8 @@ export default function ProductNewEditForm({ currentProduct }) {
       description: currentProduct?.description || '',
       image1: currentProduct?.image1 || null,
       image2: currentProduct?.image2 || null,
+      hsn: currentProduct?.hsn || '',
+      gstPercentage: currentProduct?.gstPercentage || '',
     }),
     [currentProduct]
   );
@@ -184,6 +188,8 @@ export default function ProductNewEditForm({ currentProduct }) {
       formData.append('code', data.code);
       formData.append('pair', data.pair || 'No');
       formData.append('apihitid', user.id);
+      formData.append('hsn', data.hsn);
+      formData.append('gstPercentage', data.gstPercentage);
       console.log('formData', formData);
 
 
@@ -271,6 +277,9 @@ export default function ProductNewEditForm({ currentProduct }) {
               options={pairs.map((option) => option.label)}
               getOptionLabel={(option) => option}
             />
+
+            <RHFTextField id="hsn" name="hsn" label="HSN" />
+            <RHFTextField id="gstPercentage" name="gstPercentage" label="Gst Percentage" />
 
             {/* <RHFUpload
               name="image1"
