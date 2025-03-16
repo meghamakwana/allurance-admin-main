@@ -13,6 +13,7 @@ import Container from '@mui/material/Container';
 import TableBody from '@mui/material/TableBody';
 import IconButton from '@mui/material/IconButton';
 import TableContainer from '@mui/material/TableContainer';
+import Stack from '@mui/material/Stack';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -46,6 +47,8 @@ import OrderTableToolbar from '../reports-table-toolbar';
 import OrderTableFiltersResult from '../reports-table-filters-result';
 import { REPORTS_LISTING } from 'src/utils/apiEndPoints';
 import { ManageAPIsData } from 'src/utils/commonFunction';
+
+import html2pdf from 'html2pdf.js';
 
 // ----------------------------------------------------------------------
 
@@ -184,6 +187,18 @@ export default function OrderListView() {
     [router]
   );
 
+  const handleDownloadReport = () => {
+    table.onDefaultRowsPerPageChange(1000);
+    const options = {
+      filename:     'Warehouse report.pdf',
+      jsPDF:        { unit: 'in', format: 'A4', orientation: 'portrait' }
+    }
+    const el = document.querySelector('#reports-table')
+    html2pdf(el, options).then(() => {
+      table.onDefaultRowsPerPageChange(5);
+    })
+  }
+
   return (
     <>
       <Container maxWidth={settings.themeStretch ? false : 'lg'}>
@@ -221,7 +236,18 @@ export default function OrderListView() {
               results={dataFiltered.length}
               sx={{ p: 2.5, pt: 0 }}
             />
-          )}  
+          )} 
+          <Stack direction="row" justifyContent="end" alignItems="center" spacing={2} flexGrow={1} sx={{ width: 1 }}>
+            <Button
+              variant="contained"
+              onClick={handleDownloadReport}
+              size="small"
+              sx={{ mb: 2, mr: 4 }}
+            >
+              Download Report
+            </Button>
+          </Stack> 
+          
           <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
             <TableSelectedAction
               dense={table.dense}
@@ -236,7 +262,7 @@ export default function OrderListView() {
             />
 
             <Scrollbar>
-              <Table size={table.dense ? 'small' : 'medium'} sx={{ minWidth: 960 }}>
+              <Table id='reports-table' size={table.dense ? 'small' : 'medium'} sx={{ minWidth: 960 }}>
                 <TableHeadCustom
                   order={table.order}
                   orderBy={table.orderBy}
@@ -327,14 +353,21 @@ function applyFilter({ inputData, comparator, filters, dateError }) {
 
   if (batch_number) {
     inputData = inputData.filter(
-      (order) => order.batch_number.toLowerCase().indexOf(batch_number.toLowerCase()) !== -1
+      (order) => order.batch_number?.toLowerCase().indexOf(batch_number.toLowerCase()) !== -1
     );
   }
 
   if (model_number) {
-    inputData = inputData.filter(
-      (order) => order.model_number.toLowerCase().indexOf(model_number.toLowerCase()) !== -1
-    );
+    const models = model_number.split(',');
+    const filteredData = [];
+    inputData.forEach((order) => {
+      models.forEach((model) => {
+        if(model && order.model_number?.toLowerCase().indexOf(model.trim().toLowerCase()) !== -1) {
+          filteredData.push(order)
+        }
+      })
+    })
+    inputData = filteredData;
   }
 
   if (packing_request_id) {

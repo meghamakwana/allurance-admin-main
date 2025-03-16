@@ -54,8 +54,8 @@ export default function OrderTableRow({ row, selected, onViewRow, onSelectRow, o
         </Box>
       </TableCell>
 
-      <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
-        {/* <Avatar alt={customer?.first_name} src={customer?.avatarUrl} sx={{ mr: 2 }} /> */}
+      {/* <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
+        <Avatar alt={customer?.first_name} src={customer?.avatarUrl} sx={{ mr: 2 }} />
 
         <ListItemText
           primary={first_name + " " + last_name}
@@ -66,7 +66,7 @@ export default function OrderTableRow({ row, selected, onViewRow, onSelectRow, o
             color: 'text.disabled',
           }}
         />
-      </TableCell>
+      </TableCell> */}
 
       <TableCell>
         <ListItemText

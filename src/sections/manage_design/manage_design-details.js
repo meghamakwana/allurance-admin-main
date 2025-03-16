@@ -92,10 +92,63 @@ export default function InvoiceDetails({ invoice }) {
                             )}
                         </Box>
                     </Stack>
-
-
                 </Box>
                 <Divider sx={{ mt: 2, mb: 5, borderStyle: 'dashed' }} />
+                {invoice?.marketing_information?.map((info) => (
+                    <>
+                        <Box rowGap={5} display="grid" alignItems="center" gridTemplateColumns={{ xs: 'repeat(1, 1fr)', sm: 'repeat(2, 1fr)' }}>
+                            <Stack sx={{ typography: 'body2' }}>
+                                <Typography variant="subtitle2" sx={{ mb: 3, fontSize: 'calc(1rem + 1px)' }}>
+                                    Marketing Information
+                                </Typography>
+                                <Stack spacing={3}>
+                                    <Typography variant="subtitle2">Title: {info?.title}</Typography>
+                                    <Typography variant="subtitle2">Base Price: {info?.base_price}</Typography>
+                                    <Typography variant="subtitle2">Bulk Price: {info?.bulk_price}</Typography>
+                                    <Typography variant="subtitle2">Collection: {info?.collection}</Typography>
+                                    <Typography variant="subtitle2">Weight: {info?.weight}</Typography>
+                                    <Typography variant="subtitle2">Description: {info?.description}</Typography>
+                                    <Typography variant="subtitle2">Similar Options: {info?.similar_options}</Typography>
+                                    <Typography variant="subtitle2">Created on: {fDate(info?.created_at)}</Typography>
+                                    {info?.updated_at ? <Typography variant="subtitle2">Approved On: {fDate(info?.updated_at)}</Typography> : ""}
+                                    {info?.rejection_reason ? <Typography variant="subtitle2">Rejection Reason: {info?.rejection_reason}</Typography> : ""}
+                                </Stack>
+                            </Stack>
+                            {/* <Stack sx={{ typography: 'body2' }}>
+                                <Typography variant="subtitle2" sx={{ mb: 3, fontSize: 'calc(1rem + 1px)' }}>
+                                    Uploaded Images
+                                </Typography>
+                                <Box display="flex">
+                                    {[
+                                        invoice?.image1,
+                                        invoice?.image2,
+                                        invoice?.image3,
+                                        invoice?.image4,
+                                        invoice?.image5,
+                                        invoice?.image6
+                                    ].filter(image => image).length > 0 ? (
+                                        [invoice?.image1, invoice?.image2, invoice?.image3, invoice?.image4, invoice?.image5, invoice?.image6]
+                                            .filter(image => image)
+                                            .map((image, index) => (
+                                                <Image
+                                                    key={index}
+                                                    alt={`Image ${index + 1}`}
+                                                    src={image}
+                                                    style={{ width: 100, height: 100, marginRight: 2, marginBottom: 2 }}
+                                                    onClick={() => handleOpenLightbox(image)}
+                                                />
+                                            ))
+                                    ) : (
+                                        <Typography sx={{ mt: 2, color: 'text.secondary' }}>
+                                            No images uploaded
+                                        </Typography>
+                                    )}
+                                </Box>
+                            </Stack> */}
+                        </Box>
+                        <Divider sx={{ mt: 2, mb: 5, borderStyle: 'dashed' }} />
+                    </>
+                ))}
                 <Stack sx={{ typography: 'body2' }}>
                     <Typography variant="subtitle2" sx={{ mb: 1 }}>
                         Pieces Information Pie Chart

@@ -51,7 +51,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 import EcommerceSaleByGender from 'src/sections/overview/e-commerce/ecommerce-sale-by-gender';
 // ----------------------------------------------------------------------
 
-export default function InvoiceDetails({ invoice, open, onClose, coupons }) {
+export default function InvoiceDetails({ invoice, open, onClose, coupons, giftCardHistory }) {
     const [currentStatus, setCurrentStatus] = useState(invoice?.status);
     const [openRejectDialog, setOpenRejectDialog] = useState(false);
     const handleChangeStatus = useCallback((event) => {
@@ -285,6 +285,41 @@ export default function InvoiceDetails({ invoice, open, onClose, coupons }) {
                 <Divider sx={{ mt: 2, mb: 5, borderStyle: 'dashed' }} />
                 {renderList}
                 <Divider sx={{ mt: 2, mb: 5, borderStyle: 'dashed' }} />
+                {giftCardHistory.length > 0 && (
+                    <>
+                        <Typography variant="subtitle2" sx={{ mb: 3, fontSize: 'calc(1rem + 1px)' }}>
+                            Gift Card History
+                        </Typography>
+                        <TableContainer sx={{ overflow: 'unset', mt: 5 }}>
+                            <Scrollbar>
+                                <Table sx={{ minWidth: 960 }}>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell width={40}>No.</TableCell>
+                                            <TableCell sx={{ typography: 'subtitle2' }}>Customer Name</TableCell>
+                                            <TableCell sx={{ typography: 'subtitle2' }}>Email</TableCell>
+                                            <TableCell sx={{ typography: 'subtitle2' }}>Phone</TableCell>
+                                            <TableCell sx={{ typography: 'subtitle2' }}>Redeemed Date</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+
+                                    <TableBody>
+                                        {giftCardHistory?.map((gc, index) => (
+                                            <TableRow key={index}>
+                                                <TableCell>{index + 1}</TableCell>
+                                                <TableCell>{gc?.first_name} {gc?.last_name}</TableCell>
+                                                <TableCell>{gc?.email}</TableCell>
+                                                <TableCell>{gc?.phone}</TableCell>
+                                                <TableCell>{fDate(gc?.applied_on)}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </Scrollbar>
+                        </TableContainer>
+                        <Divider sx={{ mt: 2, mb: 5, borderStyle: 'dashed' }} />
+                    </>
+                )}
             </Card >
 
             <Dialog

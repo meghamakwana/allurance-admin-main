@@ -107,6 +107,7 @@ export const LOGIN_ENDPOINT = `${apiUrl}/users/login`;
 // CUSTOMER MODULE
 export const ine_customers_ModuleID = 14; // Module ID
 export const CUSTOMER_ENDPOINT = `${apiUrl}/customers`; // Endpoint to manage customers
+export const CUSTOMER_DETAILS_ENDPOINT = `${apiUrl}/customers/customer_details`; // Endpoint to manage customers details
 
 // MANAGE REQUEST MODULE
 export const ine_managerequest_ModuleID = 72; // Module ID
@@ -233,6 +234,7 @@ export const INE_ORDERS_ENDPOINT = `${apiUrl}/offlinesales/orders`;
 export const INE_SEARCH_USER_BY_PHONE_NUMBER = `${apiUrl}/offlinesales/invoice/searchuser`;
 export const OFFLINE_SALES_USER_ADDRESSES_ENDPOINT = `${apiUrl}/offlinesales/invoice/searchaddress`;
 export const OFFLINE_SALES_SEARCH_PRODUCT_BY_SERIAL_NUMBER_ENDPOINT = `${apiUrl}/offlinesales/invoice/searchbyserialnumber`;
+export const OFFLINE_SALES_SEARCH_PRODUCT_BY_MODEL_NUMBER_ENDPOINT = `${apiUrl}/offlinesales/invoice/searchbymodelnumber`;
 export const OFFLINE_SALES_CREATE_USER_ENDPOINT = `${apiUrl}/offlinesales/invoice/createuser`;
 export const OFFLINE_SALES_COUPONS_ENDPOINT = `${apiUrl}/offlinesales/invoice/coupons`;
 export const OFFLINE_SALES_GIFTCARD_VERIFY_ENDPOINT = `${apiUrl}/offlinesales/invoice/giftcard/verification`;

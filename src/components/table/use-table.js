@@ -95,6 +95,10 @@ export default function useTable(props) {
     [page, rowsPerPage, selected.length]
   );
 
+  const onDefaultRowsPerPageChange = useCallback((rows) => {
+    setRowsPerPage(rows)
+  }, []);
+
   return {
     dense,
     order,
@@ -113,6 +117,7 @@ export default function useTable(props) {
     onChangeRowsPerPage,
     onUpdatePageDeleteRow,
     onUpdatePageDeleteRows,
+    onDefaultRowsPerPageChange,
     //
     setPage,
     setDense,
