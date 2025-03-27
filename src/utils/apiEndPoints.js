@@ -482,8 +482,5 @@ export const ADMIN_DASHBOARD_GIFT_CARD = `${apiUrl}/manage_dashboard/admin-giftc
 export const ADMIN_DASHBOARD_RATING = `${apiUrl}/manage_dashboard/admin-rating`
 export const ADMIN_DASHBOARD_CAMPAIGN = `${apiUrl}/manage_dashboard/admin-campaign`
 
-
-
-
-
-
+// PROMOTIONAL COMMUNICATION
+export const PROMOTIONAL_EMAIL_ENDPOINT = `${apiUrl}/email/send_promotion_email`;
